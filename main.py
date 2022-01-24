@@ -17,8 +17,8 @@ def lookUpContact(number):
     if number == None:
         return None
     for p in allowed_numbers:
-        if (number == p.number) or (p.number in number):
-            return p.name
+        if (number == p.get('number')) or (p.get('number') in number):
+            return p.get('name')
     return None
 
 
@@ -28,7 +28,7 @@ def handleIncomingCall(call):
         call.hangup()
         return
     if name != None:
-        voice("{}来电话".format(name))
+        voice("{} 来电话".format(name))
         if call.ringCount >= 5:
             call.answer()
     else:
@@ -56,10 +56,10 @@ def voice(text):
 def k1_released():
     print("K1 released")
     try:
-        c = allowed_numbers[0]
-        voice("打电话给{}".format(c.name))
+        c = allowed_numbers[3]
+        voice("打电话给: {}".format(c.get('name')))
         time.sleep(5)
-        modem.dial(c.number)
+        modem.dial(c.get('number'))
     except Exception as e:
         print("Exception: ", e)
 
@@ -67,10 +67,10 @@ def k1_released():
 def k2_released():
     print("K2 released")
     try:
-        c = allowed_numbers[1]
-        voice("打电话给{}".format(c.name))
+        c = allowed_numbers[3]
+        voice("打电话给: {}".format(c.get('name')))
         time.sleep(5)
-        modem.dial(c.number)
+        modem.dial(c.get('number'))
     except Exception as e:
         print("Exception: ", e)
 
