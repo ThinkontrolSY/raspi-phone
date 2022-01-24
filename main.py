@@ -1,5 +1,6 @@
+import time
 from signal import pause
-from sqlite3 import Time
+import binascii
 from gpiozero import Button
 import yaml
 from gsmmodem.modem import GsmModem
@@ -12,21 +13,24 @@ with open("/home/pi/work/phones.yaml", "r") as yamlfile:
 allowed_numbers = data["phonenumbers"]
 
 
-def checkNumber(number):
+def lookUpContact(number):
     if number == None:
-        return False
+        return None
     for p in allowed_numbers:
-        if (number == p) or (p in number):
-            return True
-    return False
+        if (number == p.number) or (p.number in number):
+            return p.name
+    return None
 
 
 def handleIncomingCall(call):
-    if call.number != None and not checkNumber(call.number):
+    name = lookUpContact(call.number)
+    if call.number != None and name == None:
         call.hangup()
         return
-    if call.ringCount >= 5 and checkNumber(call.number):
-        call.answer()
+    if name != None:
+        voice("{}来电话".format(name))
+        if call.ringCount >= 5:
+            call.answer()
     else:
         print(' Call from {0} is still ringing...'.format(call.number))
 
@@ -38,13 +42,24 @@ modem = GsmModem('/dev/ttyAMA0', 115200,
                  incomingCallCallbackFunc=handleIncomingCall)
 modem.connect()
 
-print(modem.manufacturer)
+
+def voice(text):
+    try:
+        msg = binascii.hexlify(text.encode("utf_16_be")).decode()
+        print(msg)
+        responseLines = modem.write('AT+CTTS=1,"{}"'.format(msg))
+        print(responseLines)
+    except Exception as e:
+        print("Exception: ", e)
 
 
 def k1_released():
     print("K1 released")
     try:
-        modem.dial(allowed_numbers[0])
+        c = allowed_numbers[0]
+        voice("打电话给{}".format(c.name))
+        time.sleep(5)
+        modem.dial(c.number)
     except Exception as e:
         print("Exception: ", e)
 
@@ -52,7 +67,10 @@ def k1_released():
 def k2_released():
     print("K2 released")
     try:
-        modem.dial(allowed_numbers[1])
+        c = allowed_numbers[1]
+        voice("打电话给{}".format(c.name))
+        time.sleep(5)
+        modem.dial(c.number)
     except Exception as e:
         print("Exception: ", e)
 
