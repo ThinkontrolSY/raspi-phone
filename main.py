@@ -7,7 +7,7 @@ from gsmmodem.modem import GsmModem
 
 allowed_numbers = []
 
-with open("/home/pi/work/phones.yaml", "r") as yamlfile:
+with open("./phones.yaml", "r") as yamlfile:
     data = yaml.load(yamlfile, Loader=yaml.FullLoader)
 
 allowed_numbers = data["phonenumbers"]
@@ -23,6 +23,7 @@ def lookUpContact(number):
 
 
 def handleIncomingCall(call):
+    print('Incoming call from {0}...'.format(call.number))
     name = lookUpContact(call.number)
     if call.number != None and name == None:
         call.hangup()
@@ -56,7 +57,7 @@ def voice(text):
 def k1_released():
     print("K1 released")
     try:
-        c = allowed_numbers[3]
+        c = allowed_numbers[2]
         voice("打电话给: {}".format(c.get('name')))
         time.sleep(5)
         modem.dial(c.get('number'))
